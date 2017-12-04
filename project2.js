@@ -3,15 +3,28 @@ d3.select(window).on('load', init);
 
 function init() {
 
-    var w = 350; // vidde
-    var h = 200;  // højde
+    var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+    var w = 1000; // vidde
+    var h = 400;  // højde
 
     var datasetAa;
 
     var rowConverter = function(d){
         return {
             YEAR: parseFloat(d.YEAR),
-            JAN: parseFloat(d.JAN)};
+            JAN: parseFloat(d.JAN),
+            FEB: parseFloat(d.FEB),
+            MAR: parseFloat(d.MAR),
+            APR: parseFloat(d.APR),
+            MAY: parseFloat(d.MAY),
+            JUN: parseFloat(d.JUN),
+            JUL: parseFloat(d.JUL),
+            AUG: parseFloat(d.AUG),
+            SEP: parseFloat(d.SEP),
+            OCT: parseFloat(d.OCT),
+            NOV: parseFloat(d.NOV),
+            DEC: parseFloat(d.DEC)};
     };
 
     // noinspection JSAnnotator
@@ -26,9 +39,9 @@ function init() {
         function(error, data) {
             if (error) {console.log(error);}
             else {console.log(data);}
-            ;
 
-            datasetAa = data  // hvordan bliver dett til en global variabel der lever udenfor funktionen også?
+
+            datasetAa = data; // hvordan bliver dett til en global variabel der lever udenfor funktionen også?
 
             var svg1 = d3.select('body')
                 .append('svg')
@@ -40,8 +53,8 @@ function init() {
             var xmax = d3.max(data, function(d){return d.YEAR;});
             var xmin = d3.min(data, function(d){return d.YEAR;});
 
-            var ymax = d3.max(data, function(d){return d.JAN;});
-            var ymin = d3.min(data, function(d){return d.JAN;});
+            var ymax = 20;//d3.max(data, function(d){return d.JAN;});
+            var ymin = -10;//d3.min(data, function(d){return d.JAN;});
 
             var xScale = d3.scaleLinear()
                 .domain([ xmin,xmax ])
@@ -53,6 +66,7 @@ function init() {
 
             var xAxis = d3.axisBottom()  // hvorfor sætter man ikke scale og ticks-argumenterne ind i parantesen, som slet ikke bliver brugt?
                 .scale(xScale)
+                .tickFormat(d3.format('d'))
                 .ticks(5)
             ;
 
@@ -61,17 +75,23 @@ function init() {
                 .ticks(5)
             ;
 
-
-
-            svg1.selectAll("circle")
+            var count = 0;
+            g = svg1.selectAll("g")
                 .data(data)
                 .enter()
-                .append("circle")
-                .attr("cx", function(d){return xScale(d.YEAR);})
-                .attr("cy", function(d){return yScale(d.JAN);})
-                .attr("r", 4)
-            ;
+                .append("g");
 
+            for(var j=0; j<months.length; j++) {
+                g.append("circle")
+                    .attr("cx", function(d){console.log(d.YEAR); return xScale(d.YEAR);})
+                    .attr("cy", function(d){
+                        var value = isNaN(d[(months[j].toUpperCase())]) ? 0 : d[(months[j].toUpperCase())];
+                        console.log(yScale(value));
+                        return yScale(value);
+                    })
+                    .attr("r", 4)
+                    .attr("class", months[j]);
+            }
 
             //Create X axis
             svg1.append("g")
