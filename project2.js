@@ -5,10 +5,15 @@ function init() {
 
     var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-    var w = 1000; // vidde
+    var w = 500; // vidde
     var h = 400;  // højde
-
     var datasetAa;
+
+    var w2 = 500; // vidde
+    var h2 = 400;  // højde
+    var padding2 = 30;
+    var datasetAalborgMelt;
+
 
     var rowConverter = function(d){
         return {
@@ -26,6 +31,17 @@ function init() {
             NOV: parseFloat(d.NOV),
             DEC: parseFloat(d.DEC)};
     };
+
+
+    var rowConverter2 = function(d){
+        return {
+            //YEAR: parseFloat(d.YEAR),
+            value: parseFloat(d.value),
+            // dates1: d3.timeParse("%Y-%m-%d")(d.dates1), ikke nødvendig, da jeg nu har lavet den nedenfor
+            dates1: new Date(+d.YEAR, (+d.month_nr - 1))
+        };
+    };
+
 
     // noinspection JSAnnotator
     d3.csv(
@@ -106,16 +122,6 @@ function init() {
                 .attr("transform","translate(" +  padding + ",0)") // er der en paste-funktion gemt?
             ;
 
-            d3.select('body')
-                .append('ul')
-                .selectAll('li')
-                .data(data)
-                .enter()
-                .append('li')
-                .text(function(d){
-                    return d.YEAR;
-                });
-
 
             console.log("test");
             console.log(+svg1.node().getBoundingClientRect().width);
@@ -126,6 +132,102 @@ function init() {
         }
     );
 
+
+    d3.tsv(
+        'meltedStation Aalborg_20171205.txt', rowConverter2,
+
+        function(error, data) {
+            if (error) {console.log(error);}
+            else {console.log(data);}
+            ;
+
+            datasetAalborgMelt = data;
+
+            var svg2 = d3.select('body')
+                .append('svg')
+                .attr("width", w2)
+                .attr("height", h2);
+
+            var xmax = d3.max(data, function(d){return d.dates1;});
+            var xmin = d3.min(data, function(d){return d.dates1;});
+
+            var ymax = 20;
+
+
+            var ymin = d3.min(data, function(d){return d.value;});
+
+            console.log(xmin);
+            console.log(xmax);
+            console.log(ymin);
+            console.log(ymax);
+
+            var xScale = d3.scaleTime()
+                .domain([ xmin - 365*24*3600*1000, xmax ])  // Why is it ipossible to add tne number to xmax?
+                .range([padding2, w2 - padding2]);
+
+
+
+            var yScale = d3.scaleLinear()
+                .domain([ymin -1 , ymax + 1 ])
+                .range([h2 - padding2, padding2])
+            ;
+
+
+            //Define line generator
+            lineKW = d3.line()
+                .defined(function(d) { return d.value < 100; })
+                .x(function(d) { return xScale(d.dates1); })
+                .y(function(d) { return yScale(d.value); })
+            ;
+
+
+            var xAxis = d3.axisBottom()
+                .scale(xScale)
+                .ticks(5)
+            ;
+
+            var yAxis = d3.axisLeft()
+                .scale(yScale)
+                .ticks(5)
+            ;
+
+
+            circles = svg2.selectAll("circle")
+                .data(data)
+                .enter()
+                .append("circle")
+                .attr("cx", function(d){return xScale(d.dates1);})
+                .attr("cy", function(d){return yScale(d.value);})
+                .attr("r", 1)
+                .attr("fill" , "grey")
+                .attr("stroke" , "grey")
+            ;
+
+            //Create line
+            svg2.append("path")
+                .datum(data)
+                .attr("class", "line")
+                .attr("d", lineKW)
+                .attr("stroke" , "grey")
+                .attr("fill", "none")
+
+            ;
+
+            //Create X axis
+            svg2.append("g")
+                .attr("class", "axis")
+                .call(xAxis)
+                .attr("transform","translate(0," + (h2 - padding2) + ")")
+            ;
+            //Create Y axis
+            svg2.append("g")
+                .attr("class", "axis")
+                .call(yAxis)
+                .attr("transform","translate(" +  padding2 + ",0)")
+            ;
+
+        }
+    );
 
 
 }
