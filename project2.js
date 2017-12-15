@@ -151,7 +151,7 @@ function init() {
             var xmax = d3.max(data, function(d){return d.dates1;});
             var xmin = d3.min(data, function(d){return d.dates1;});
 
-            var ymax = 20;
+            var ymax = 20; 
 
 
             var ymin = d3.min(data, function(d){return d.value;});
